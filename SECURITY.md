@@ -8,7 +8,7 @@ If you believe you have found a security vulnerability in this repository, pleas
 
 **Do not report vulnerabilities through public issues, discussions, or pull requests.**
 
-Instead, email us at **[josephdeornay@gmail.com]**.
+Instead, email us at **josephdeornay@gmail.com**.
 
 To help us triage your report quickly, please include as much of the following as you can:
 
