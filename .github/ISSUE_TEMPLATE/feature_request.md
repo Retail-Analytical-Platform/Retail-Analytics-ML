@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Propose a new capability
-title: 'feat : '
+title: ''
 labels: enhancement
 assignees: ''
 type: Feature
