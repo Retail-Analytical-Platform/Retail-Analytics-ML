@@ -1,7 +1,7 @@
 ---
 name: Improvement / refactor
 about: Cleanup, performance, or maintainability work
-title: Improve
+title: ''
 labels: documentation, enhancement, maintainability, testing
 assignees: ''
 type: Feature

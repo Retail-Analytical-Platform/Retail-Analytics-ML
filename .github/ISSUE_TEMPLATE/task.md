@@ -1,7 +1,7 @@
 ---
 name: Task
 about: A concrete piece of work with a clear outcome
-title: Task
+title: ''
 labels: ''
 assignees: ''
 type: Task
