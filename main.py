@@ -2,12 +2,18 @@ import argparse
 import logging
 import sys
 
+from src.data.ingestion import load_all
 from src.logging_setup import setup_logging
 from src.run_id import new_run_id
 
 
 def validate(args):
     print("Validate")
+    if args.sample:
+        return 
+    for name, df in load_all().items():
+        print(f"{name}: {len(df)} rows")
+
 def features(args):
     print("Features")
 def train(args):
