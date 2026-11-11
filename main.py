@@ -2,7 +2,9 @@ import argparse
 import logging
 import sys
 
+from src.config import load_config
 from src.data.ingestion import load_all
+from src.data.validation import validate_tables
 from src.logging_setup import setup_logging
 from src.run_id import new_run_id
 
@@ -10,9 +12,14 @@ from src.run_id import new_run_id
 def validate(args):
     print("Validate")
     if args.sample:
-        return 
-    for name, df in load_all().items():
+        return  
+    tables = load_all()
+    for name, df in tables.items():
         print(f"{name}: {len(df)} rows")
+    failures = validate_tables(tables, load_config("forecast_config"))
+    if failures:
+        raise ValueError("Data validation failed:\n- " + "\n- ".join(failures))
+    print("All checks passed")
 
 def features(args):
     print("Features")

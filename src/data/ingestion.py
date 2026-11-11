@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from datetime import date
 from decimal import Decimal
 
 import pandas as pd
@@ -33,7 +34,7 @@ def _connect() -> psycopg.Connection:
         f"Could not reach the database after {RETRIES} attempts.") from last_error
 
 
-def load_table(name: str) -> pd.DataFrame:
+def _load_once(name: str) -> pd.DataFrame:
     if name not in TABLES:
         raise ValueError(f"Unknown table '{name}'")
     query = sql.SQL("select * from {}.{}").format(sql.Identifier(SCHEMA), sql.Identifier(name))
@@ -45,7 +46,29 @@ def load_table(name: str) -> pd.DataFrame:
     for col in df.columns:
         if df[col].map(lambda v: isinstance(v, Decimal)).any():
             df[col] = df[col].astype(float)
+
+    # timestamp columns can arrive as object dtype; make them real datetimes
+    for col in df.columns:
+        values = df[col].dropna()
+        if df[col].dtype == object and not values.empty and values.map(
+            lambda v: isinstance(v, date)
+        ).all():
+            df[col] = pd.to_datetime(df[col])
     return df
+
+def load_table(name: str) -> pd.DataFrame:
+    for attempt in range(1, RETRIES + 1):
+        try:
+            return _load_once(name)
+        except psycopg.OperationalError as exc:
+            logger.warning(
+                "Reading %s failed (attempt %d/%d): %s",
+                name, attempt, RETRIES, type(exc).__name__,
+            )
+            if attempt == RETRIES:
+                raise
+            time.sleep(WAIT_SECONDS)
+    raise RuntimeError(f"Failed to load table '{name}' after {RETRIES} attempts")
 
 
 def load_dim_customer() -> pd.DataFrame:
