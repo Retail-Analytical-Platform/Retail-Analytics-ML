@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import logging
 from src.config import load_config
 from src.data.ingestion import SAMPLE_CONFIG, load_all
 from src.data.validation import validate_tables
@@ -23,7 +24,6 @@ from src.models.names import BASELINES, ML_MODELS
 from src.models.training import train_final
 from src.reporting.report import build_report
 from src.run_id import new_run_id
-
 def validate(args):
     print("Validate")
     config = load_config("forecast_config")
@@ -112,7 +112,6 @@ def main(argv=None):
     args.run_id = args.run_id or os.environ.get("RUN_ID") or new_run_id()
     logging.getLogger(__name__).info("run_id=%s", run_id)
     args = parser.parse_args(argv)
-
     names = list(STAGES) if args.stage == "all" else [args.stage]
     for name in names:
         try:
