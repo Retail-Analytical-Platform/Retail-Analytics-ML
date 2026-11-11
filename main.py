@@ -24,6 +24,7 @@ from src.models.names import BASELINES, ML_MODELS
 from src.models.training import train_final
 from src.reporting.report import build_report
 from src.run_id import new_run_id
+
 def validate(args):
     print("Validate")
     config = load_config("forecast_config")
@@ -37,6 +38,10 @@ def validate(args):
         raise ValueError("Data validation failed:\n- " + "\n- ".join(failures))
     print("All checks passed")
 
+    if args.sample:
+        return 
+    for name, df in load_all().items():
+        print(f"{name}: {len(df)} rows")
 def features(args):
     print("Features")
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
