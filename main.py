@@ -1,13 +1,11 @@
 import argparse
 import logging
+import logging
 import sys
 
-<<<<<<< HEAD
 from src.logging_setup import setup_logging
 from src.run_id import new_run_id
 
-=======
->>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
 
 def validate(args):
     print("Validate")
@@ -41,12 +39,9 @@ def main(argv=None):
     parser.add_argument("--target")
     parser.add_argument("--sample", action="store_true")
     args = parser.parse_args(argv)
-<<<<<<< HEAD
     setup_logging()
     run_id = new_run_id()
     logging.getLogger(__name__).info("run_id=%s", run_id)
-=======
->>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
 
     names = list(STAGES) if args.stage == "all" else [args.stage]
     for name in names:
