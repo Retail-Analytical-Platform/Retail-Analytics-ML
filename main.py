@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+
 def validate(args):
     print("Validate")
 def features(args):
@@ -26,20 +27,20 @@ STAGES = {
     "report": report,
 }
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True, choices=[*STAGES, "all"])
     parser.add_argument("--model")
     parser.add_argument("--target")
     parser.add_argument("--sample", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     names = list(STAGES) if args.stage == "all" else [args.stage]
     for name in names:
-        try : 
+        try:
             STAGES[name](args)
         except Exception as e:
-            print(f"Stage'{name}' failed: {e}",file=sys.stderr)
+            print(f"Stage'{name}' failed: {e}", file=sys.stderr)
             return 1
     return 0
 
