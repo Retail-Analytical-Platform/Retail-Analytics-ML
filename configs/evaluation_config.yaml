@@ -1,0 +1,4 @@
+metrics:
+  - mae
+  - rmse
+split_strategy: time_series

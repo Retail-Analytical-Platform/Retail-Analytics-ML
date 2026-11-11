@@ -1,0 +1,6 @@
+feature_columns:
+  - date
+  - store_id
+  - product_id
+  - price
+  - promotion_flag
