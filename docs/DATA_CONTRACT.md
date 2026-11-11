@@ -1,0 +1,38 @@
+# Data contract
+
+## Database access
+
+- Role: `reader` (read-only)
+- Schema: `active signed schema`
+- GitHub secret: `Database URL`
+
+The password and the connection string are never stored in the repo.
+
+## Schema
+
+Star schema: one fact table and four dimensions.
+
+| Table | Key | Columns |
+| --- | --- | --- |
+| dim_customer | customer_key | customer_key int, customer_name text, email text, city text, country text, segment text |
+| dim_date | date_key | date_key int, full_date timestamp, day_of_week text, month_name text, quarter text, is_weekend bool |
+| dim_product | product_key | product_key int, product_name text, category text, subcategory text, unit_cost numeric, list_price numeric |
+| dim_store | store_key | store_key int, store_name text, region text, store_type text |
+| fact_sales | sale_id | sale_id int, date_key int, product_key int, customer_key int, store_key int, sold_at timestamp, quantity int, unit_price numeric, discount_pct numeric, revenue numeric, category text |
+
+Row counts at the time of writing: dim_customer 1995, dim_date 731, dim_product 400, dim_store 40, fact_sales 60000.
+
+## Rules checked by the validate stage
+
+- Every column above exists with the expected type (numeric, text, timestamp, bool).
+- No nulls in key columns, or in `fact_sales` date, product, store, `sold_at`, quantity, price and revenue.
+- No duplicate keys.
+- `fact_sales.quantity` and `fact_sales.revenue` are never negative.
+- `dim_date.full_date` has no missing days between its first and last date.
+- The `dim_date` range and the `fact_sales` row count match `configs/forecast_config.yaml`.
+
+`customer_key` and `discount_pct` in `fact_sales` may be null (guest sales, no discount), so they are not in the not-null list.
+
+## Personal data
+
+`dim_customer` holds personal data (name, email). Never log it, and drop it before building the forecast dataset (#19).
