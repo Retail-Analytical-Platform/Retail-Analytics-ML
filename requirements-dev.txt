@@ -1,9 +1,5 @@
 -r requirements.txt
 pytest
 pytest-cov
-<<<<<<< HEAD
 ruff
 pre-commit
-=======
-ruff
->>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
