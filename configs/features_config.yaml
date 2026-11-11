@@ -1,6 +1,15 @@
+<<<<<<< HEAD
 feature_columns: [date, store_key, category]
 categorical_columns: [store_key, category]
 holidays: ["2024-01-01", "2024-12-25", "2025-01-01", "2025-12-25"]
 payday_days: [25]
 lags: [28, 35, 42]
 rolling_windows: [7, 28]
+=======
+feature_columns:
+  - date
+  - store_id
+  - product_id
+  - price
+  - promotion_flag
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)

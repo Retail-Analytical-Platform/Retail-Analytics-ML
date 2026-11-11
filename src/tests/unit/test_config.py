@@ -20,6 +20,7 @@ def test_wrong_type_raises(tmp_path, monkeypatch):
     )
     monkeypatch.setattr("src.config.CONFIG_DIR", tmp_path)
     with pytest.raises(ValueError, match="horizon"):
+<<<<<<< HEAD
         load_config("forecast_config")
         
 def test_missing_grain_raises(tmp_path, monkeypatch):
@@ -30,4 +31,6 @@ def test_missing_grain_raises(tmp_path, monkeypatch):
     )
     monkeypatch.setattr("src.config.CONFIG_DIR", tmp_path)
     with pytest.raises(ValueError, match="grain"):
+=======
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
         load_config("forecast_config")

@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 metrics: [mae, rmse, smape, wape, bias]
 primary_metric: wape
+=======
+metrics:
+  - mae
+  - rmse
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
 split_strategy: time_series

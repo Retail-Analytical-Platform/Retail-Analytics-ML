@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 
+<<<<<<< HEAD
 from src.config import load_config
 from src.data.ingestion import SAMPLE_CONFIG, load_all
 from src.data.validation import validate_tables
@@ -24,6 +25,8 @@ from src.models.training import train_final
 from src.reporting.report import build_report
 from src.run_id import new_run_id
 
+=======
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
 
 def validate(args):
     print("Validate")
@@ -106,19 +109,27 @@ def main(argv=None):
     parser.add_argument("--model")
     parser.add_argument("--target")
     parser.add_argument("--sample", action="store_true")
+<<<<<<< HEAD
     parser.add_argument("--run-id", dest="run_id")
     args = parser.parse_args(argv)
     setup_logging()
     run_id = new_run_id()
     args.run_id = args.run_id or os.environ.get("RUN_ID") or new_run_id()
     logging.getLogger(__name__).info("run_id=%s", run_id)
+=======
+    args = parser.parse_args(argv)
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
 
     names = list(STAGES) if args.stage == "all" else [args.stage]
     for name in names:
         try:
             STAGES[name](args)
         except Exception as e:
+<<<<<<< HEAD
             print(f"Stage '{name}' failed: {e}")
+=======
+            print(f"Stage'{name}' failed: {e}", file=sys.stderr)
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
             return 1
     return 0
 

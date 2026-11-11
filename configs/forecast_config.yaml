@@ -1,6 +1,7 @@
 training_window_days: 180
 horizon: 28
 target_column: quantity
+<<<<<<< HEAD
 grain: [store_key, category]
 date_column: sold_at
 
@@ -16,3 +17,5 @@ window_type: expanding
 early_stopping_holdout_days: 28
 min_improvement: 0.05
 output_dir: forecasts
+=======
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)

@@ -5,10 +5,15 @@ import yaml
 CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
 
 _REQUIRED = {
+<<<<<<< HEAD
     "forecast_config": {"training_window_days": int, "horizon": int,
                     "expected_date_start": str, "expected_date_end": str,
                     "target_column": str, "grain": list, "date_column": str,
                     "min_fact_rows": int},    "features_config": {"feature_columns": list},
+=======
+    "forecast_config": {"training_window_days": int, "horizon": int},
+    "features_config": {"feature_columns": list},
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
     "models_config": {"models": (list, dict)},
     "evaluation_config": {"metrics": list, "split_strategy": str},
     "params": {"target_column": str, "date_column": str},
@@ -33,4 +38,8 @@ def load_config(name: str) -> dict:
         if not isinstance(config[key], expected):
             raise ValueError(f"Config '{name}': key '{key}' has the wrong type")
 
+<<<<<<< HEAD
     return config
+=======
+    return config
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)

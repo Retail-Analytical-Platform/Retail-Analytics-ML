@@ -6,7 +6,11 @@ src/__pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+<<<<<<< HEAD
 .coverage
 synthetic/
 catboost_info/
 __init__.py
+=======
+.coverage
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)

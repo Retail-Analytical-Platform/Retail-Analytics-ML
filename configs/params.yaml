@@ -1,7 +1,10 @@
 target_column: quantity
 date_column: date
+<<<<<<< HEAD
 
 training_window_days: 365
 horizon: 28
 target_column: quantity
 grain: category        # new key
+=======
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)

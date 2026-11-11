@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 seed: 42
 early_stopping_rounds: 50
 n_trials: 10
@@ -25,3 +26,8 @@ models:
       learning_rate: [log_float, 0.01, 0.2]
       max_depth: [int, 3, 8]
       min_child_weight: [int, 1, 10]
+=======
+models:
+  - baseline
+  - linear_regression
+>>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
