@@ -3,10 +3,11 @@ import os
 import time
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 import pandas as pd
-import psycopg  # type: ignore[reportMissingImports]
-from psycopg import sql  # type: ignore[reportMissingImports]
+import psycopg
+from psycopg import sql
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,14 @@ SCHEMA = os.environ.get("SCHEMA_NAME", "clean")
 TABLES = ("dim_customer", "dim_date", "dim_product", "dim_store", "fact_sales")
 RETRIES = 3
 WAIT_SECONDS = 5
+
+FIXTURE_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
+SAMPLE_DATE_COLUMNS = {"dim_date": ["full_date"], "fact_sales": ["sold_at"]}
+SAMPLE_CONFIG = {
+    "expected_date_start": "2024-01-01",
+    "expected_date_end": "2025-12-31",
+    "min_fact_rows": 1000,
+}
 
 
 def _connect() -> psycopg.Connection:
@@ -40,6 +49,8 @@ def _load_once(name: str) -> pd.DataFrame:
     query = sql.SQL("select * from {}.{}").format(sql.Identifier(SCHEMA), sql.Identifier(name))
     with _connect() as conn, conn.cursor() as cur:
         cur.execute(query)
+        if cur.description is None:
+            raise RuntimeError(f"Query for table '{name}' returned no columns")
         columns = [col.name for col in cur.description]
         df = pd.DataFrame(cur.fetchall(), columns=columns)
     # numeric columns arrive as Decimal objects; models need floats
@@ -91,5 +102,14 @@ def load_fact_sales() -> pd.DataFrame:
     return load_table("fact_sales")
 
 
-def load_all() -> dict[str, pd.DataFrame]:
+def load_sample(name: str) -> pd.DataFrame:
+    if name not in TABLES:
+        raise ValueError(f"Unknown table '{name}'")
+    path = FIXTURE_DIR / f"{name}.csv"
+    return pd.read_csv(path, parse_dates=SAMPLE_DATE_COLUMNS.get(name, []))
+
+
+def load_all(sample: bool = False) -> dict[str, pd.DataFrame]:
+    if sample:
+        return {name: load_sample(name) for name in TABLES}
     return {name: load_table(name) for name in TABLES}
