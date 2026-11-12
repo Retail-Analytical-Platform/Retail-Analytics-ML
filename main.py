@@ -4,7 +4,7 @@ import logging
 import sys
 
 from src.config import load_config
-from src.data.ingestion import load_all
+from src.data.ingestion import SAMPLE_CONFIG, load_all
 from src.data.validation import validate_tables
 from src.logging_setup import setup_logging
 from src.run_id import new_run_id
@@ -12,12 +12,13 @@ from src.run_id import new_run_id
 
 def validate(args):
     print("Validate")
+    config = load_config("forecast_config")
     if args.sample:
-        return  
-    tables = load_all()
+        config = {**config, **SAMPLE_CONFIG}
+    tables = load_all(sample=args.sample)
     for name, df in tables.items():
         print(f"{name}: {len(df)} rows")
-    failures = validate_tables(tables, load_config("forecast_config"))
+    failures = validate_tables(tables, config)
     if failures:
         raise ValueError("Data validation failed:\n- " + "\n- ".join(failures))
     print("All checks passed")

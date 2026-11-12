@@ -1,0 +1,21 @@
+customer_key,customer_name,email,city,country,segment
+1,Customer 001,customer001@example.com,Yogyakarta,Exampleland,Corporate
+2,Customer 002,customer002@example.com,London,Exampleland,Corporate
+3,Customer 003,customer003@example.com,Edinburgh,Exampleland,Consumer
+4,Customer 004,customer004@example.com,Edinburgh,Exampleland,Home Office
+5,Customer 005,customer005@example.com,Edinburgh,Exampleland,Home Office
+6,Customer 006,customer006@example.com,London,Exampleland,Corporate
+7,Customer 007,customer007@example.com,Yogyakarta,Exampleland,Corporate
+8,Customer 008,customer008@example.com,London,Exampleland,Home Office
+9,Customer 009,customer009@example.com,Yogyakarta,Exampleland,Corporate
+10,Customer 010,customer010@example.com,Yogyakarta,Exampleland,Corporate
+11,Customer 011,customer011@example.com,Edinburgh,Exampleland,Corporate
+12,Customer 012,customer012@example.com,London,Exampleland,Consumer
+13,Customer 013,customer013@example.com,London,Exampleland,Consumer
+14,Customer 014,customer014@example.com,London,Exampleland,Corporate
+15,Customer 015,customer015@example.com,London,Exampleland,Home Office
+16,Customer 016,customer016@example.com,London,Exampleland,Consumer
+17,Customer 017,customer017@example.com,Edinburgh,Exampleland,Home Office
+18,Customer 018,customer018@example.com,Yogyakarta,Exampleland,Home Office
+19,Customer 019,customer019@example.com,London,Exampleland,Consumer
+20,Customer 020,customer020@example.com,Edinburgh,Exampleland,Corporate

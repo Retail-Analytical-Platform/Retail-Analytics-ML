@@ -1,0 +1,9 @@
+product_key,product_name,category,subcategory,unit_cost,list_price
+1,Grocery Basic,Grocery,Basic,6.0,10.0
+2,Grocery Premium,Grocery,Premium,12.0,20.0
+3,Electronics Basic,Electronics,Basic,12.0,20.0
+4,Electronics Premium,Electronics,Premium,24.0,40.0
+5,Apparel Basic,Apparel,Basic,18.0,30.0
+6,Apparel Premium,Apparel,Premium,36.0,60.0
+7,Home Basic,Home,Basic,24.0,40.0
+8,Home Premium,Home,Premium,48.0,80.0
