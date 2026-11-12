@@ -2,6 +2,6 @@ training_window_days: 180
 horizon: 28
 target_column: quantity
 
-expected_date_start: "2024-01-01"   # replace with your real first date
-expected_date_end: "2025-12-31"     # replace with your real last date
+expected_date_start: "2024-01-01"   
+expected_date_end: "2025-12-31"     
 min_fact_rows: 50000
