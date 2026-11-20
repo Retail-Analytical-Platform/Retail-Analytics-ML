@@ -100,6 +100,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     setup_logging()
     run_id = new_run_id()
+    args.run_id = run_id
     logging.getLogger(__name__).info("run_id=%s", run_id)
 
     names = list(STAGES) if args.stage == "all" else [args.stage]
