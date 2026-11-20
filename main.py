@@ -5,6 +5,10 @@ import sys
 from src.config import load_config
 from src.data.ingestion import SAMPLE_CONFIG, load_all
 from src.data.validation import validate_tables
+from src.features.dataset import (
+    build_forecast_dataset,
+    save_forecast_dataset,
+)
 from src.logging_setup import setup_logging
 from src.run_id import new_run_id
 
@@ -23,7 +27,12 @@ def validate(args):
     print("All checks passed")
 
 def features(args):
-    print("Features")
+    cfg = load_config("forecast_config")
+    df = load_all(sample=args.sample)["fact_sales"]
+    ds = build_forecast_dataset(df, cfg["date_column"], cfg["grain"], cfg["target_column"])
+    path = save_forecast_dataset(ds)
+    print(f"Saved {len(ds)} rows to {path}")
+    
 def train(args):
     print("Train")
 def backtest(args): 
