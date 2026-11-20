@@ -7,3 +7,15 @@ min_fact_rows: 50000
 target: revenue
 grain: [store_key, category]
 date_column: sold_at
+
+split:
+  validation_days: 28
+  test_days: 28
+backtest:
+  n_folds: 4
+  step: 7                    
+  window: expanding          
+  min_train_days: 90         
+  train_window_days: 180     
+  folds_path: artifacts/metrics/folds.json
+primary_metric: wape         # one of: mae, rmse, smape, wape
