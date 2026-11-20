@@ -13,7 +13,7 @@ split:
   test_days: 28
 backtest:
   n_folds: 4
-  step: 7                    
+  step: 28                    
   window: expanding          
   min_train_days: 90         
   train_window_days: 180     
