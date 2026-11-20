@@ -82,3 +82,28 @@ def test_saved_folds_are_identical_across_runs(tmp_path):
     p2 = save_folds(make_folds(FIRST, LAST, H, BT, 14), tmp_path / "b" / "folds.json")
     assert p1.read_bytes() == p2.read_bytes()
     assert load_folds(p1) == folds
+
+def test_overlapping_validation_windows_are_caught():
+    folds = make_folds(FIRST, LAST, H, BT, 14)
+    # fold 1 now starts on fold 0's last validation day, but still trains before it
+    folds[1]["train_end"] = folds[0]["train_end"]
+    folds[1]["valid_start"] = folds[0]["valid_end"]
+    with pytest.raises(ValueError, match="overlaps"):
+        assert_chronological(folds)
+
+
+def test_chronological_split_needs_enough_history():
+    with pytest.raises(ValueError, match="Not enough history"):
+        chronological_split(pd.date_range(FIRST, periods=20), validation_days=10, test_days=15)
+
+
+def test_no_fold_touches_the_test_period():
+    test_days = 14
+    test_start = pd.Timestamp(LAST) - pd.Timedelta(days=test_days - 1)
+    for f in make_folds(FIRST, LAST, H, BT, test_days):
+        assert pd.Timestamp(f["valid_end"]) < test_start
+
+
+def test_fold_numbers_are_sequential():
+    folds = make_folds(FIRST, LAST, H, BT, 14)
+    assert [f["fold"] for f in folds] == list(range(BT["n_folds"]))
