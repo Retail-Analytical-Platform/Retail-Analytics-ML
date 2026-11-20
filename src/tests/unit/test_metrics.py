@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from src.evaluation.metrics import (
+    bias,
     check_primary_metric,
     compute_metrics,
     get_metric,
@@ -60,3 +61,29 @@ def test_grouped_metrics_per_fold():
     out = grouped_metrics(df, ["fold"]).set_index("fold")
     assert out.loc[1, "mae"] == pytest.approx(2.0)
     assert out.loc[2, "mae"] == pytest.approx(5.0)
+
+def test_bias_sign_and_wape_hand_value():
+    assert bias([10, 10], [12, 14]) == pytest.approx(3.0)     # over-forecast is positive
+    assert bias([10, 10], [8, 6]) == pytest.approx(-3.0)      # under-forecast is negative
+    assert wape([100, 100], [90, 120]) == pytest.approx(0.15)  # 30 / 200
+
+
+def test_perfect_forecast_scores_zero():
+    m = compute_metrics([5, 10, 0], [5, 10, 0])
+    assert all(v == 0.0 for v in m.values())
+
+
+def test_grouped_metrics_per_horizon_step_and_series():
+    df = pd.DataFrame({
+        "store_key": [1, 1, 2, 2],
+        "horizon_step": [1, 2, 1, 2],
+        "actual": [10, 20, 30, 40],
+        "forecast": [12, 18, 30, 50],
+    })
+    by_step = grouped_metrics(df, ["horizon_step"]).set_index("horizon_step")
+    assert by_step.loc[1, "mae"] == pytest.approx(1.0)   # errors 2 and 0
+    assert by_step.loc[2, "mae"] == pytest.approx(6.0)   # errors 2 and 10
+    by_series = grouped_metrics(df, ["store_key"]).set_index("store_key")
+    assert by_series.loc[1, "mae"] == pytest.approx(2.0)
+    assert by_series.loc[2, "mae"] == pytest.approx(5.0)
+    assert len(grouped_metrics(df, ["store_key", "horizon_step"])) == 4
