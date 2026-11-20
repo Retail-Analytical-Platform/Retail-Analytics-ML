@@ -13,3 +13,5 @@ lags_rolling:
   lags: [7, 14, 28]       
   windows: [7, 14, 28]    
   drop_incomplete_history: true
+
+categorical_columns: [store_key, category]
