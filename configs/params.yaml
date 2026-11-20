@@ -1,2 +1,7 @@
 target_column: quantity
 date_column: date
+
+training_window_days: 365
+horizon: 28
+target_column: quantity
+grain: category        # new key

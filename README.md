@@ -55,8 +55,55 @@ Setup instructions will be added once the code is in place. They will cover:
 
 ## Project structure
 
-To be added as the codebase takes shape.
+```text
+Retail-Analytics-ML/
+├── README.md                    
+├── CONTRIBUTING.md              
+├── CODE_OF_CONDUCT.md           
+├── SECURITY.md                  
+├── LICENSE                      
+├── main.py                      
+├── pyproject.toml               
+├── requirements.txt             
+├── .gitignore                   
+├── .env.example                 
+├── .pre-commit-config.yaml      
+├── .github/
+│   ├── ISSUE_TEMPLATE/          
+│   ├── pull_request_template.md 
+│   ├── dependabot.yml           
+│   └── workflows/
+│       ├── ci.yml               
+│       ├── ml-pipeline.yml      
+│       └── forecast.yml         
+├── configs/
+│   ├── forecast_config.yaml
+│   ├── feature_config.yaml
+│   ├── model_config.yaml
+│   
+├── src/
+│   ├── data/                    
+│   ├── features/                
+│   ├── models/                  
+│   ├── evaluation/              
+│   ├── forecasting/             
+│   └── reporting/               
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── fixtures/                
+│   └── conftest.py              
+├── notebooks/
+│   ├── 01_exploratory_analysis.ipynb   
+│   ├── 03_model_comparison.ipynb       
+│   └── 04_business_analysis.ipynb      
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DATA_CONTRACT.md
+│   ├── FORECASTING_STRATEGY.md
+│   └── TESTING_AND_CI.md
 
+```
 ## Contributing
 
 Contributions are welcome. Please read:

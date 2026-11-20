@@ -21,3 +21,13 @@ def test_wrong_type_raises(tmp_path, monkeypatch):
     monkeypatch.setattr("src.config.CONFIG_DIR", tmp_path)
     with pytest.raises(ValueError, match="horizon"):
         load_config("forecast_config")
+        
+def test_missing_grain_raises(tmp_path, monkeypatch):
+    (tmp_path / "forecast_config.yaml").write_text(
+        "training_window_days: 180\nhorizon: 28\n"
+        "expected_date_start: '2024-01-01'\nexpected_date_end: '2025-12-31'\n"
+        "min_fact_rows: 50000\ntarget_column: quantity\n"
+    )
+    monkeypatch.setattr("src.config.CONFIG_DIR", tmp_path)
+    with pytest.raises(ValueError, match="grain"):
+        load_config("forecast_config")
