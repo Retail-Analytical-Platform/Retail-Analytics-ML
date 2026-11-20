@@ -7,7 +7,7 @@ CONFIG_DIR = Path(__file__).resolve().parent.parent / "configs"
 _REQUIRED = {
     "forecast_config": {"training_window_days": int, "horizon": int,
                     "expected_date_start": str, "expected_date_end": str,
-                    "target_column": str, "grain": str,
+                    "target_column": str, "grain": list, "date_column": str,
                     "min_fact_rows": int},    "features_config": {"feature_columns": list},
     "models_config": {"models": (list, dict)},
     "evaluation_config": {"metrics": list, "split_strategy": str},

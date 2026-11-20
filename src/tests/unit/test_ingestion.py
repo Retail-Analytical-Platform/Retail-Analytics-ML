@@ -42,7 +42,6 @@ class FakeConn:
 
 @pytest.fixture(autouse=True)
 def fake_env(monkeypatch):
-    """A fake URL, and no real waiting between retries."""
     monkeypatch.setenv(URL_VAR, "postgresql://fake:fake@localhost:5432/fake")
     sleeps = []
     monkeypatch.setattr(ingestion.time, "sleep", sleeps.append)
