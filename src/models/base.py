@@ -10,14 +10,17 @@ from typing_extensions import Self
 METADATA_FILE = "metadata.json"
 MODEL_FILE = "model.bin"
 SCHEMA_VERSION = 1
+_NON_MODEL_KEYS = ("early_stopping_rounds", "seed", "random_seed", "random_state", "categorical_columns")
 
 
 class BaseModel(ABC):
     name = "base"   # set by @register
 
     def __init__(self, **params):
-        self.params = params
-        self.feature_names = None
+        self.params = dict(params)                    
+        self.seed = params.get("seed", 42)
+        self.patience = params.get("early_stopping_rounds")
+        self.categorical_columns = list(params.get("categorical_columns") or [])
 
     @abstractmethod
     def fit(self, X: Any, y: Any, X_valid: Any = None, y_valid: Any = None) -> Self:
@@ -57,3 +60,9 @@ class BaseModel(ABC):
         self._read(directory / MODEL_FILE)
         self.feature_names = meta["features"]
         return self
+    
+
+
+    def _unpack(self):
+        params = {k: v for k, v in self.params.items() if k not in _NON_MODEL_KEYS}
+        return params, self.seed, self.patience, self.categorical_columns

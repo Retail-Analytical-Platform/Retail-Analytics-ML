@@ -1,3 +1,7 @@
+1shared:
+  seed: 42
+  early_stopping_rounds: 50
+
 models:
   catboost: {iterations: 1000, learning_rate: 0.05, depth: 6, l2_leaf_reg: 3}
   lightgbm: {n_estimators: 1000, learning_rate: 0.05, num_leaves: 31, max_depth: 6, min_child_samples: 20}
