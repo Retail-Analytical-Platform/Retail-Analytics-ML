@@ -1,3 +1,20 @@
 models:
-  - baseline
-  - linear_regression
+  catboost: {iterations: 1000, learning_rate: 0.05, depth: 6, l2_leaf_reg: 3}
+  lightgbm: {n_estimators: 1000, learning_rate: 0.05, num_leaves: 31, max_depth: 6, min_child_samples: 20}
+  xgboost:  {n_estimators: 1000, learning_rate: 0.05, max_depth: 6, min_child_weight: 5}
+
+tuning:
+  n_trials: 20
+  space:
+    catboost:
+      depth: {type: int, low: 4, high: 8}
+      learning_rate: {type: float, low: 0.01, high: 0.2, log: true}
+      l2_leaf_reg: {type: float, low: 1, high: 10, log: true}
+    lightgbm:
+      num_leaves: {type: int, low: 7, high: 63}
+      learning_rate: {type: float, low: 0.01, high: 0.2, log: true}
+      min_child_samples: {type: int, low: 5, high: 50}
+    xgboost:
+      max_depth: {type: int, low: 3, high: 8}
+      learning_rate: {type: float, low: 0.01, high: 0.2, log: true}
+      min_child_weight: {type: float, low: 1, high: 10, log: true}
