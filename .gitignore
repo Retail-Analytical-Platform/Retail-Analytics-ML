@@ -7,4 +7,5 @@ src/__pycache__/
 .ruff_cache/
 .venv/
 .coverage
+synthetic/
 catboost_info/

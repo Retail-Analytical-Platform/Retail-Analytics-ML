@@ -16,7 +16,7 @@ TABLES = ("dim_customer", "dim_date", "dim_product", "dim_store", "fact_sales")
 RETRIES = 3
 WAIT_SECONDS = 5
 
-FIXTURE_DIR = Path(__file__).resolve().parents[1] / "tests" / "fixtures"
+FIXTURE_DIR = Path(os.environ.get("SAMPLE_DIR") or Path(__file__).resolve().parents[1] / "tests" / "fixtures")
 SAMPLE_DATE_COLUMNS = {"dim_date": ["full_date"], "fact_sales": ["sold_at"]}
 SAMPLE_CONFIG = {
     "expected_date_start": "2024-01-01",
