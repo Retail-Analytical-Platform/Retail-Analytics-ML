@@ -10,7 +10,7 @@ calendar:
   payday_days: [25, 1]   
 
 lags_rolling:
-  lags: [7, 14, 28]       
+  lags: [28, 35, 42]
   windows: [7, 14, 28]    
   drop_incomplete_history: true
 

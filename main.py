@@ -44,7 +44,24 @@ def features(args):
     print(f"Saved {len(ds)} rows to {path}")
     
 def train(args):
-    print("Train")
+    from src.features.dataset import load_forecast_dataset
+    from src.features.pipeline import build_features
+    from src.models.training import ML_MODELS, train_model
+
+    if args.model and args.model not in ML_MODELS:
+        raise ValueError(f"'{args.model}' is not a trainable model; choose from {ML_MODELS}")
+    fcfg = load_config("forecast_config")
+    feat_cfg = load_config("features_config")
+    model_cfg = load_config("models_config")
+    try:
+        ds = load_forecast_dataset()
+    except FileNotFoundError:
+        raise FileNotFoundError("Forecast dataset not found; run --stage features first") from None
+    feats = build_features(ds, fcfg["date_column"], fcfg["grain"], fcfg["target_column"],
+                           feat_cfg, fcfg["horizon"])
+    for name in [args.model] if args.model else ML_MODELS:
+        _, path = train_model(name, feats, fcfg, feat_cfg, model_cfg, args.run_id)
+        print(f"{name}: saved to {path}")
     
 def backtest(args):
     cfg = load_config("forecast_config")
@@ -109,7 +126,7 @@ def main(argv=None):
         try:
             STAGES[name](args)
         except Exception as e:
-            print(f"Stage'{name}' failed: {e}", file=sys.stderr)
+            print(f"Stage '{name}' failed: {e}")
             return 1
     return 0
 
