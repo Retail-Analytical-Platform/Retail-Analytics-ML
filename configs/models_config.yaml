@@ -1,4 +1,4 @@
-1shared:
+shared:
   seed: 42
   early_stopping_rounds: 50
 
