@@ -1,18 +1,28 @@
+import argparse
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-OUT = Path(__file__).resolve().parents[1] / "src" / "tests" / "fixtures"
+DEFAULT_OUT = Path(__file__).resolve().parents[1] / "src" / "tests" / "fixtures"
 START, END = "2024-01-01", "2025-12-31"
-SEED = 42
-N_CUSTOMERS = 20
 CATEGORIES = ["Grocery", "Electronics", "Apparel", "Home"]
+REGIONS = ["North", "South", "East"]
+STORE_TYPES = ["Mall", "Street", "Mall"]
 
 
 def main() -> None:
-    rng = np.random.default_rng(SEED)
-    OUT.mkdir(parents=True, exist_ok=True)
+    p = argparse.ArgumentParser()
+    p.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    p.add_argument("--stores", type=int, default=3)
+    p.add_argument("--products-per-category", type=int, default=2)
+    p.add_argument("--customers", type=int, default=20)
+    p.add_argument("--keep", type=float, default=0.5, help="share of the daily grid kept as sales")
+    p.add_argument("--seed", type=int, default=42)
+    a = p.parse_args()
+
+    rng = np.random.default_rng(a.seed)
+    a.out.mkdir(parents=True, exist_ok=True)
 
     days = pd.date_range(START, END, freq="D")
     dim_date = pd.DataFrame({
@@ -24,51 +34,53 @@ def main() -> None:
         "is_weekend": days.day_of_week >= 5,
     })
 
-    keys = range(1, N_CUSTOMERS + 1)
+    keys = range(1, a.customers + 1)
     dim_customer = pd.DataFrame({
         "customer_key": keys,
         "customer_name": [f"Customer {i:03d}" for i in keys],
         "email": [f"customer{i:03d}@example.com" for i in keys],
-        "city": rng.choice(["Yogyakarta", "Edinburgh", "London"], N_CUSTOMERS),
+        "city": rng.choice(["Yogyakarta", "Edinburgh", "London"], a.customers),
         "country": "Exampleland",
-        "segment": rng.choice(["Consumer", "Corporate", "Home Office"], N_CUSTOMERS),
+        "segment": rng.choice(["Consumer", "Corporate", "Home Office"], a.customers),
     })
 
+    n_sub = a.products_per_category
     products = []
     for i, category in enumerate(CATEGORIES):
-        for j, subcategory in enumerate(("Basic", "Premium")):
-            price = 10.0 * (i + 1) * (j + 1)
+        for j in range(n_sub):
+            sub = ("Basic", "Premium")[j] if n_sub == 2 else f"Line {j + 1:03d}"
+            price = 10.0 * (i + 1) * (1 + j % 5)
             products.append({
-                "product_key": i * 2 + j + 1,
-                "product_name": f"{category} {subcategory}",
+                "product_key": i * n_sub + j + 1,
+                "product_name": f"{category} {sub}",
                 "category": category,
-                "subcategory": subcategory,
+                "subcategory": sub,
                 "unit_cost": round(price * 0.6, 2),
                 "list_price": price,
             })
     dim_product = pd.DataFrame(products)
 
+    store_keys = list(range(1, a.stores + 1))
     dim_store = pd.DataFrame({
-        "store_key": [1, 2, 3],
-        "store_name": ["Store A", "Store B", "Store C"],
-        "region": ["North", "South", "East"],
-        "store_type": ["Mall", "Street", "Mall"],
+        "store_key": store_keys,
+        "store_name": ["Store A", "Store B", "Store C"] if a.stores == 3
+                      else [f"Store {k:02d}" for k in store_keys],
+        "region": [REGIONS[k % 3] for k in range(a.stores)],
+        "store_type": [STORE_TYPES[k % 3] for k in range(a.stores)],
     })
 
-    # One candidate sale per day, store and product; keep about half, so some
-    # series have zero-sales days (#19 has to handle those).
     grid = pd.MultiIndex.from_product(
         [days, dim_store["store_key"], dim_product["product_key"]],
         names=["date", "store_key", "product_key"],
     ).to_frame(index=False)
-    grid = grid[rng.random(len(grid)) < 0.5].reset_index(drop=True)
+    grid = grid[rng.random(len(grid)) < a.keep].reset_index(drop=True)
     n = len(grid)
 
     product = dim_product.set_index("product_key").loc[grid["product_key"]]
     price = product["list_price"].to_numpy()
     quantity = rng.integers(1, 6, n)
     discount = rng.choice([0.0, 0.05, 0.10, 0.20], n, p=[0.6, 0.2, 0.15, 0.05])
-    customer = pd.array(rng.integers(1, N_CUSTOMERS + 1, n), dtype="Int64")
+    customer = pd.array(rng.integers(1, a.customers + 1, n), dtype="Int64")
     customer[rng.random(n) < 0.05] = pd.NA  # guest sales
     seconds = rng.integers(8 * 3600, 21 * 3600, n)
 
@@ -94,7 +106,7 @@ def main() -> None:
         "fact_sales": fact_sales,
     }
     for name, df in tables.items():
-        df.to_csv(OUT / f"{name}.csv", index=False)
+        df.to_csv(a.out / f"{name}.csv", index=False)
         print(f"{name}: {len(df)} rows")
 
 
