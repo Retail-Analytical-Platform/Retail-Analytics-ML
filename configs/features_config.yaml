@@ -15,3 +15,12 @@ lags_rolling:
   drop_incomplete_history: true
 
 categorical_columns: [store_key, category]
+
+backtest:
+  n_folds: 4
+  step: 28                   
+  window: sliding           
+  min_train_days: 90
+  train_window_days: 180
+  folds_path: artifacts/metrics/folds.json
+primary_metric: wape
