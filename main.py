@@ -17,6 +17,7 @@ from src.features.pipeline import (
     make_features,
     save_frame,
 )
+from src.forecasting.forecast import generate_forecast, save_forecast
 from src.logging_setup import setup_logging
 from src.models.names import BASELINES, ML_MODELS
 from src.models.training import train_final
@@ -38,8 +39,6 @@ def validate(args):
 
 def features(args):
     print("Features")
-
-
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
     dataset = build_dataset(load_all(sample=args.sample), fcfg)
     save_frame(dataset, DATASET_PATH)
@@ -51,8 +50,6 @@ def features(args):
 
 def train(args):
     print("Train")
-
-
     if args.model and args.model not in ML_MODELS:
         raise ValueError(f"'{args.model}' is not a trainable model; choose from {ML_MODELS}")
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
@@ -63,7 +60,6 @@ def train(args):
 
 def backtest(args):
     print("Backtest")
-
     allowed = (*ML_MODELS, *BASELINES)
     if args.model and args.model not in allowed:
         raise ValueError(f"Unknown model '{args.model}'; expected one of {allowed}")
@@ -76,7 +72,6 @@ def backtest(args):
 
 def select(args):
     print("Select")
-
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
     ecfg = load_config("evaluation_config")
     if args.sample:
@@ -86,6 +81,9 @@ def select(args):
 
 def forecast(args):
     print("Forecast")
+    fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
+    out = generate_forecast(load_all(sample=args.sample), fcfg, xcfg)
+    print(f"{len(out)} forecast rows saved to {save_forecast(out, fcfg)}")
 def report(args):
     print("Report")
 
