@@ -1,4 +1,3 @@
-metrics:
-  - mae
-  - rmse
+metrics: [mae, rmse, smape, wape, bias]
+primary_metric: wape
 split_strategy: time_series

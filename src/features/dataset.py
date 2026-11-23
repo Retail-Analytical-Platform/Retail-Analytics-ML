@@ -47,3 +47,25 @@ def save_forecast_dataset(df, path=DATASET_PATH):
 
 def load_forecast_dataset(path=DATASET_PATH):
     return pd.read_parquet(path)
+
+def build_dataset(tables, config):
+    target, grain = config["target_column"], list(config["grain"])
+    fact = tables["fact_sales"].copy()
+    calendar = pd.DatetimeIndex(
+        pd.to_datetime(tables["dim_date"]["full_date"]).dt.normalize()
+    ).unique().sort_values()
+
+    fact["date"] = pd.to_datetime(fact["sold_at"]).dt.normalize()
+    unknown = fact.loc[~fact["date"].isin(calendar), "date"].unique()
+    if len(unknown):
+        raise ValueError(
+            f"{len(unknown)} sale date(s) are missing from dim_date, first {pd.Timestamp(unknown[0]).date()}"
+        )
+
+    daily = fact.groupby([*grain, "date"], as_index=False)[target].sum()
+    series = fact[grain].drop_duplicates()
+    full = series.merge(pd.DataFrame({"date": calendar}), how="cross")
+    out = full.merge(daily, on=[*grain, "date"], how="left")
+    out["is_zero_filled"] = out[target].isna()
+    out[target] = out[target].fillna(0.0).astype(float)
+    return out.sort_values([*grain, "date"]).reset_index(drop=True)
