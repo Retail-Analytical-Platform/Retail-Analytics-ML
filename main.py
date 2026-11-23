@@ -1,11 +1,25 @@
 import argparse
 import logging
+import os
 import sys
 
 from src.config import load_config
 from src.data.ingestion import SAMPLE_CONFIG, load_all
 from src.data.validation import validate_tables
+from src.evaluation.compare import backtest_and_record
+from src.evaluation.select import run_select
+from src.evaluation.splits import make_folds, save_folds
+from src.features.dataset import build_dataset
+from src.features.pipeline import (
+    DATASET_PATH,
+    FEATURES_PATH,
+    load_frame,
+    make_features,
+    save_frame,
+)
 from src.logging_setup import setup_logging
+from src.models.names import BASELINES, ML_MODELS
+from src.models.training import train_final
 from src.run_id import new_run_id
 
 
@@ -24,14 +38,7 @@ def validate(args):
 
 def features(args):
     print("Features")
-    from src.evaluation.splits import make_folds, save_folds
-    from src.features.dataset import build_dataset
-    from src.features.pipeline import (
-        DATASET_PATH,
-        FEATURES_PATH,
-        make_features,
-        save_frame,
-    )
+
 
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
     dataset = build_dataset(load_all(sample=args.sample), fcfg)
@@ -44,9 +51,7 @@ def features(args):
 
 def train(args):
     print("Train")
-    from src.features.pipeline import FEATURES_PATH, load_frame
-    from src.models.names import ML_MODELS
-    from src.models.training import train_final
+
 
     if args.model and args.model not in ML_MODELS:
         raise ValueError(f"'{args.model}' is not a trainable model; choose from {ML_MODELS}")
@@ -58,8 +63,6 @@ def train(args):
 
 def backtest(args):
     print("Backtest")
-    from src.evaluation.compare import backtest_and_record
-    from src.models.names import BASELINES, ML_MODELS
 
     allowed = (*ML_MODELS, *BASELINES)
     if args.model and args.model not in allowed:
@@ -73,6 +76,14 @@ def backtest(args):
 
 def select(args):
     print("Select")
+
+    fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
+    ecfg = load_config("evaluation_config")
+    if args.sample:
+        fcfg = {**fcfg, "min_improvement": 0.0}
+    summary = run_select(args.run_id, fcfg, xcfg, ecfg, args.sample)
+    print(f"selected: {summary['selected']}")
+
 def forecast(args):
     print("Forecast")
 def report(args):
@@ -94,10 +105,11 @@ def main(argv=None):
     parser.add_argument("--model")
     parser.add_argument("--target")
     parser.add_argument("--sample", action="store_true")
+    parser.add_argument("--run-id", dest="run_id")
     args = parser.parse_args(argv)
     setup_logging()
     run_id = new_run_id()
-    args.run_id = run_id
+    args.run_id = args.run_id or os.environ.get("RUN_ID") or new_run_id()
     logging.getLogger(__name__).info("run_id=%s", run_id)
 
     names = list(STAGES) if args.stage == "all" else [args.stage]
