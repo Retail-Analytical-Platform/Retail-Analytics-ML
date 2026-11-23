@@ -1,0 +1,48 @@
+name: Forecast
+
+on:
+  workflow_run:
+    workflows: ["ML pipeline"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: ID of an ML pipeline run whose selected-model artifact to use
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  forecast:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: selected-model
+          path: artifacts
+          run-id: ${{ github.event.workflow_run.id || inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          python main.py --stage forecast
+          python main.py --stage report
+        env:
+          DATABASE_ROLE_URL: ${{ secrets.DATABASE_ROLE_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: forecast-report
+          path: artifacts/forecasts
