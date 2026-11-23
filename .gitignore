@@ -9,3 +9,4 @@ src/__pycache__/
 .coverage
 synthetic/
 catboost_info/
+__init__.py
