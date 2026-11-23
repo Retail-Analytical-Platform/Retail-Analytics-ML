@@ -11,17 +11,15 @@ class LightGBMModel(BaseModel):
 
     def _fit(self, X, y, X_val, y_val):
         self.model = lgb.LGBMRegressor(**self.params, random_state=self.seed, verbose=-1)
-        eval_set = None
-        callbacks = None
+        fit_kwargs: dict[str, Any] = {}
         if X_val is not None:
-            eval_set = [(X_val, y_val)]
+            fit_kwargs["eval_X"] = X_val
+            fit_kwargs["eval_y"] = y_val
             if self.early_stopping_rounds is not None:
-                callbacks = [lgb.early_stopping(self.early_stopping_rounds, verbose=False)]
-        self.model.fit(
-            X, y,
-            eval_set=eval_set,
-            callbacks=callbacks
-        )
+                fit_kwargs["callbacks"] = [
+                    lgb.early_stopping(self.early_stopping_rounds, verbose=False)
+                ]
+        self.model.fit(X, y, **fit_kwargs)
 
     def predict(self, X) -> Any:
         return self.model.predict(X)
