@@ -1,0 +1,133 @@
+name: ML pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Target column (leave empty for the config value)
+        type: string
+        required: false
+      horizon:
+        description: Forecast horizon in days (leave empty for the config value)
+        type: string
+        required: false
+  schedule:
+    - cron: "0 1 * * *"
+
+permissions:
+  contents: read
+
+env:
+  RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+  FORECAST_TARGET: ${{ inputs.target }}
+  FORECAST_HORIZON: ${{ inputs.horizon }}
+
+jobs:
+  db-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - run: python main.py --stage validate
+        env:
+          DATABASE_ROLE_URL: ${{ secrets.DATABASE_ROLE_URL }}
+
+  prepare:
+    needs: db-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - run: |
+          python main.py --stage validate
+          python main.py --stage features
+        env:
+          DATABASE_ROLE_URL: ${{ secrets.DATABASE_ROLE_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dataset
+          path: |
+            artifacts/data
+            artifacts/folds
+
+  train:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [catboost, lightgbm, xgboost]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: dataset
+          path: artifacts
+      - run: |
+          python main.py --stage backtest --model ${{ matrix.model }}
+          python main.py --stage train --model ${{ matrix.model }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results-${{ matrix.model }}
+          path: |
+            artifacts/metrics
+            artifacts/models
+
+  select:
+    needs: train
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: dataset
+          path: artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
+          merge-multiple: true
+          path: artifacts
+      - run: python main.py --stage select
+      - uses: actions/upload-artifact@v4
+        with:
+          name: selected-model
+          path: |
+            artifacts/models/selected
+            artifacts/metrics/comparison.json
+            artifacts/metrics/selected_backtest_predictions.parquet
