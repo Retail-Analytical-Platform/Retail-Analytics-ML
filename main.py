@@ -20,6 +20,7 @@ from src.forecasting.forecast import generate_forecast, save_forecast
 from src.logging_setup import setup_logging
 from src.models.names import BASELINES, ML_MODELS
 from src.models.training import train_final
+from src.reporting.report import build_report
 from src.run_id import new_run_id
 
 
@@ -83,8 +84,10 @@ def forecast(args):
     fcfg, xcfg = load_config("forecast_config"), load_config("features_config")
     out = generate_forecast(load_all(sample=args.sample), fcfg, xcfg)
     print(f"{len(out)} forecast rows saved to {save_forecast(out, fcfg)}")
+
 def report(args):
     print("Report")
+    print(build_report(load_config("forecast_config")))
 
 STAGES = {
     "validate": validate,
