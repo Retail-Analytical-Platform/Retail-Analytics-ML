@@ -1,26 +1,6 @@
-feature_columns:
-  - date
-  - store_id
-  - product_id
-  - price
-  - promotion_flag
-
-calendar:
-  holidays: ["2024-01-01", "2024-12-25", "2025-01-01", "2025-12-25", "2025-12-31", "2026-01-01"]  
-  payday_days: [25, 1]   
-
-lags_rolling:
-  lags: [28, 35, 42]
-  windows: [7, 14, 28]    
-  drop_incomplete_history: true
-
+feature_columns: [date, store_key, category]
 categorical_columns: [store_key, category]
-
-backtest:
-  n_folds: 4
-  step: 28                   
-  window: sliding           
-  min_train_days: 90
-  train_window_days: 180
-  folds_path: artifacts/metrics/folds.json
-primary_metric: wape
+holidays: ["2024-01-01", "2024-12-25", "2025-01-01", "2025-12-25"]
+payday_days: [25]
+lags: [28, 35, 42]
+rolling_windows: [7, 28]

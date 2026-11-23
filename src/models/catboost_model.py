@@ -1,34 +1,28 @@
-import numpy as np
 from catboost import CatBoostRegressor
 
-from src.models.base import BaseModel
-from src.models.registry import register
+from src.models.base import BaseModel, register
 
 
 @register("catboost")
 class CatBoostModel(BaseModel):
-    def fit(self, X, y, X_valid=None, y_valid=None):
-        params, seed, patience, cats = self._unpack()
-        if not cats:
-            cats = [c for c in X.columns if str(X[c].dtype) in ("category", "object")]
-        use_valid = X_valid is not None and y_valid is not None
+    model_file = "model.cbm"
+
+    def _fit(self, X, y, X_val, y_val):
+        kwargs, eval_set = {}, None
+        if X_val is not None:
+            kwargs["early_stopping_rounds"] = self.early_stopping_rounds
+            eval_set = (X_val, y_val)
         self.model = CatBoostRegressor(
-            **params,
-            random_seed=seed,
-            verbose=0,
-            cat_features=cats or None,            # native categorical handling
-            early_stopping_rounds=patience if use_valid else None,
+            **self.params, loss_function="RMSE", random_seed=self.seed, verbose=0, **kwargs
         )
-        self.model.fit(X, y, eval_set=(X_valid, y_valid) if use_valid else None)
-        self.feature_names = list(X.columns)
-        return self
+        self.model.fit(X, y, cat_features=list(self.categorical), eval_set=eval_set)
 
     def predict(self, X):
-        return np.clip(self.model.predict(X[self.feature_names]), 0, None)  # demand is never negative
+        return self.model.predict(X)
 
-    def _write(self, path):
-        self.model.save_model(str(path), format="cbm")
+    def _dump(self, path):
+        self.model.save_model(str(path))
 
-    def _read(self, path):
+    def _load(self, path):
         self.model = CatBoostRegressor()
-        self.model.load_model(str(path), format="cbm")
+        self.model.load_model(str(path))
