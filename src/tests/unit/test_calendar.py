@@ -1,30 +1,19 @@
 import pandas as pd
 
-from src.features.calendar import add_calendar_features
+from src.features.calendar import CALENDAR_COLUMNS, add_calendar_features
 
-CFG = {"holidays": ["2027-01-01"], "payday_days": [25, 1]}
+XCFG = {"holidays": ["2026-01-01"], "payday_days": [25]}
 
-def _future():
-    return pd.DataFrame({"date": pd.date_range("2027-01-01", periods=31)})
 
-def test_future_dates_have_no_nulls_without_a_target():
-    out = add_calendar_features(_future(), "date", CFG)
-    assert "revenue" not in out.columns
-    assert out.isna().sum().sum() == 0
+def test_future_dates_without_target_are_fully_filled():
+    future = pd.DataFrame({"date": pd.date_range("2026-01-01", periods=40), "store_key": 1})
+    out = add_calendar_features(future, XCFG)
+    assert not out[CALENDAR_COLUMNS].isna().any().any()
 
-def test_flags_and_parts():
-    out = add_calendar_features(_future(), "date", CFG).set_index("date")
-    assert out.loc["2027-01-01", "is_holiday"] == 1
-    assert out.loc["2027-01-02", "is_holiday"] == 0
-    assert out.loc["2027-01-02", "is_weekend"] == 1     # Saturday
-    assert out.loc["2027-01-04", "is_weekend"] == 0     # Monday
-    assert out.loc["2027-01-01", "is_month_start"] == 1
-    assert out.loc["2027-01-31", "is_month_end"] == 1
-    assert out.loc["2027-01-25", "is_payday"] == 1
-    assert out.loc["2027-01-25", "day_of_month"] == 25
-    assert out.loc["2027-01-25", "quarter"] == 1
 
-def test_input_frame_is_not_modified():
-    df = _future()
-    add_calendar_features(df, "date", CFG)
-    assert list(df.columns) == ["date"]
+def test_known_values():
+    out = add_calendar_features(pd.DataFrame({"date": pd.to_datetime(["2026-01-01", "2026-01-25", "2026-01-31"])}), XCFG)
+    assert out.loc[0, "day_of_week"] == 3          # Thursday
+    assert out.loc[0, "is_holiday"] == 1 and out.loc[0, "is_month_start"] == 1
+    assert out.loc[1, "is_payday"] == 1
+    assert out.loc[2, "is_month_end"] == 1

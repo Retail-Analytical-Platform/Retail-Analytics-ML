@@ -1,68 +1,88 @@
+import importlib
 import json
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
-from typing_extensions import Self
+FORMAT_VERSION = 1
+_REGISTRY = {}
+_LAZY = {
+    "catboost": "src.models.catboost_model",
+    "lightgbm": "src.models.lightgbm_model",
+    "xgboost": "src.models.xgboost_model",
+}
 
-METADATA_FILE = "metadata.json"
-MODEL_FILE = "model.bin"
-SCHEMA_VERSION = 1
-_NON_MODEL_KEYS = ("early_stopping_rounds", "seed", "random_seed", "random_state", "categorical_columns")
+
+def register(name):
+    def wrap(cls):
+        cls.name = name
+        _REGISTRY[name] = cls
+        return cls
+    return wrap
+
+
+def get_model_class(name):
+    if name not in _REGISTRY and name in _LAZY:
+        importlib.import_module(_LAZY[name])
+    if name not in _REGISTRY:
+        raise KeyError(f"Unknown model '{name}'. Known: {sorted(set(_REGISTRY) | set(_LAZY))}")
+    return _REGISTRY[name]
+
+
+def get_model(name, **kwargs):
+    return get_model_class(name)(**kwargs)
+
+
+def load_model(directory):
+    meta = json.loads((Path(directory) / "meta.json").read_text(encoding="utf-8"))
+    model = get_model(
+        meta["model"], params=meta["params"], seed=meta["seed"], categorical=meta["categorical"],
+    )
+    model.feature_columns = meta["feature_columns"]
+    model._load(Path(directory) / model.model_file)
+    return model
 
 
 class BaseModel(ABC):
-    name = "base"   # set by @register
+    name = "base"
+    model_file = "model.bin"
 
-    def __init__(self, **params):
-        self.params = dict(params)                    
-        self.seed = params.get("seed", 42)
-        self.patience = params.get("early_stopping_rounds")
-        self.categorical_columns = list(params.get("categorical_columns") or [])
-
-    @abstractmethod
-    def fit(self, X: Any, y: Any, X_valid: Any = None, y_valid: Any = None) -> Self:
-        """Train. X_valid/y_valid is a time-ordered set for early stopping. Return self."""
-
-    @abstractmethod
-    def predict(self, X: Any) -> Sequence[float]:
-        """Return one value per row of X."""
+    def __init__(self, params=None, seed=42, early_stopping_rounds=None, categorical=()):
+        self.params = dict(params or {})
+        self.seed = seed
+        self.early_stopping_rounds = early_stopping_rounds
+        self.categorical = list(categorical)
+        self.feature_columns = None
+        self.model = None
 
     @abstractmethod
-    def _write(self, path: Path) -> None:
-        """Write the fitted model to `path`."""
+    def _fit(self, X, y, X_val, y_val):
+        ...
 
     @abstractmethod
-    def _read(self, path: Path) -> None:
-        """Restore the fitted model from `path`."""
+    def predict(self, X):
+        ...
 
-    def save(self, directory, run_id, feature_names=None):
+    @abstractmethod
+    def _dump(self, path):
+        ...
+
+    @abstractmethod
+    def _load(self, path):
+        ...
+
+    def fit(self, X, y, X_val=None, y_val=None):
+        self.feature_columns = list(X.columns)
+        self._fit(X, y, X_val, y_val)
+        return self
+
+    def save(self, directory, run_id):
         directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
-        features = list(feature_names if feature_names is not None else self.feature_names or [])
-        self._write(directory / MODEL_FILE)
+        self._dump(directory / self.model_file)
         meta = {
-            "schema_version": SCHEMA_VERSION,
-            "model": self.name,
-            "run_id": run_id,
-            "params": self.params,
-            "features": features,
-            "saved_at": datetime.now(timezone.utc).isoformat(),
+            "model": self.name, "run_id": run_id, "format_version": FORMAT_VERSION,
+            "feature_columns": self.feature_columns, "params": self.params,
+            "seed": self.seed, "categorical": self.categorical,
         }
-        (directory / METADATA_FILE).write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+        (directory / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
         return directory
-
-    def load(self, directory) -> Self:
-        directory = Path(directory)
-        meta = json.loads((directory / METADATA_FILE).read_text())
-        self._read(directory / MODEL_FILE)
-        self.feature_names = meta["features"]
-        return self
-    
-
-
-    def _unpack(self):
-        params = {k: v for k, v in self.params.items() if k not in _NON_MODEL_KEYS}
-        return params, self.seed, self.patience, self.categorical_columns

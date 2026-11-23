@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.evaluation.splits import split_frame
+
 
 def chronological_split(dates, validation_days, test_days):
     """Train, validation and test periods in time order. Returns (start, end) pairs."""
@@ -19,12 +21,6 @@ def chronological_split(dates, validation_days, test_days):
         "validation": (valid_start, valid_end),
         "test": (test_start, last),
     }
-
-
-def split_frame(df, date_col, split):
-    d = pd.to_datetime(df[date_col])
-    return {name: df[(d >= s) & (d <= e)] for name, (s, e) in split.items()}
-
 
 def assert_chronological(folds):
     prev_valid_end = None
@@ -89,3 +85,24 @@ def save_folds(folds, path):
 
 def load_folds(path):
     return json.loads(Path(path).read_text())
+
+
+
+def run_backtest(dataset, folds, predict_fn, grain, target):
+    """predict_fn(train, val) -> DataFrame with the grain columns, date and y_pred."""
+    grain = list(grain)
+    parts = []
+    for fold in folds:
+        train, val = split_frame(dataset, fold)
+        pred = predict_fn(train, val)
+        merged = (
+            val[[*grain, "date", target]]
+            .rename(columns={target: "y_true"})
+            .merge(pred[[*grain, "date", "y_pred"]], on=[*grain, "date"], how="left", validate="one_to_one")
+        )
+        if merged["y_pred"].isna().any():
+            raise ValueError(f"Fold {fold['fold']}: missing predictions")
+        merged["fold"] = fold["fold"]
+        merged["horizon_step"] = (merged["date"] - pd.Timestamp(fold["val_start"])).dt.days + 1
+        parts.append(merged)
+    return pd.concat(parts, ignore_index=True)
