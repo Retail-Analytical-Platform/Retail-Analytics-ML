@@ -131,3 +131,26 @@ jobs:
             artifacts/models/selected
             artifacts/metrics/comparison.json
             artifacts/metrics/selected_backtest_predictions.parquet
+    notify-failure:
+    needs: [db-check, prepare, train, select]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open or update the failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="ML pipeline failed"
+          number=$(gh issue list --state open --json number,title \
+            | jq -r --arg t "$title" '[.[] | select(.title == $t)][0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "Failed again: $RUN_URL"
+          else
+            gh issue create --title "$title" --body "The pipeline failed: $RUN_URL"
+          fi
