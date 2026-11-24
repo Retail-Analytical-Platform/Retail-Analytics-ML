@@ -131,7 +131,8 @@ jobs:
             artifacts/models/selected
             artifacts/metrics/comparison.json
             artifacts/metrics/selected_backtest_predictions.parquet
-    notify-failure:
+
+  notify-failure:
     needs: [db-check, prepare, train, select]
     if: failure()
     runs-on: ubuntu-latest
