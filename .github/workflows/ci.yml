@@ -17,11 +17,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-<<<<<<< HEAD
-        python-version: ["3.11", "3.12"]
-=======
-        python-version: ["3.10", "3.11"]
->>>>>>> 0e6b1b4 (Add CI workflow, configuration files, and initial tests)
+        python-version: ["3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
